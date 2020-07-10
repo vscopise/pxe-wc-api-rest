@@ -52,7 +52,7 @@ if (!class_exists('PXE_WC_Api_Rest')) :
          */
         public static function create_order_endpoint()
         {
-            register_rest_route('wp/v2', '/create_order/', array(
+            register_rest_route('wp/v2', '/create-order/', array(
                 'methods' => 'POST',
                 'callback' => __CLASS__ . '::create_order',
             ));
