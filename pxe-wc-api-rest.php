@@ -189,6 +189,29 @@ if (!class_exists('PXE_WC_Api_Rest')) :
                     return $product->get_average_rating();
                 }
             ));
+
+            // Product Type
+            register_rest_field('product', 'product_type', array(
+                'get_callback' => function($object) {
+                    $product = wc_get_product($object['id']);
+
+                    return $product->get_type();
+                }
+            ));
+
+            // Product Variations
+            register_rest_field('product', 'variations', array(
+                'get_callback' => function ($object) {
+                    $product = wc_get_product($object['id']);
+
+                    if( $product->is_type( 'variable' )) {
+                        $variations = $product->get_available_variations();
+                        return  wp_list_pluck( $variations, 'variation_id' );
+                    } else {
+                        return [];
+                    }
+                }
+            ));
         }
 
         /**
