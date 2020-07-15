@@ -42,17 +42,51 @@ if (!class_exists('PXE_WC_Api_Rest')) :
             //add_action( 'woocommerce_rest_check_permissions', __CLASS__ . '::pxe_wc_rest_check_permissions' );    
             add_action('rest_api_init', __CLASS__ . '::extend_product_endpoint');
             add_action('rest_api_init', __CLASS__ . '::create_order_endpoint');
+            add_action('rest_api_init', __CLASS__ . '::get_product_variation_endpoint');
             //add_filter('woocommerce_taxonomy_args_product_cat', __CLASS__ . '::extend_product_cat');
         }
 
         /**
-         * create_order_endpoint
+         * Register the route for get the product variation
+         *
+         * @return void
+         */
+        public static function get_product_variation_endpoint()
+        {
+            register_rest_route(
+                'wp/v2',
+                '/product/(?P<id>\d+)/variation/(?P<variation>\d+)',
+                array(
+                    'methods' => 'GET',
+                    'callback' => __CLASS__ . '::get_product_variation',
+                ),
+                true
+            );
+        }
+
+        /**
+         * Return Product Variation via API
+         *
+         * @param  mixed $request
+         * @return WP_REST_Response|WP_Error Product Variation.
+         */
+        public static function get_product_variation($request)
+        {
+            $variation_id = $request['variation'];
+
+            $variation = wc_get_product($variation_id);
+
+            return $variation->get_data();
+        }
+
+        /**
+         * Perform a Creation of a new Order in the WC Backend
          *
          * @return void
          */
         public static function create_order_endpoint()
         {
-            register_rest_route('wp/v2', '/create-order/', array(
+            register_rest_route('pxe-wc/v1', '/create-order/', array(
                 'methods' => 'POST',
                 'callback' => __CLASS__ . '::create_order',
             ));
@@ -117,8 +151,6 @@ if (!class_exists('PXE_WC_Api_Rest')) :
         } */
 
         /**
-         * extend_product_endpoint
-         * 
          * Includes extra information in the Product endpoint
          *
          * @return void
@@ -151,6 +183,17 @@ if (!class_exists('PXE_WC_Api_Rest')) :
                         $product_categories[] = $term->term_id;
                     }
                     return $product_categories;
+                }
+            ));
+
+            // Product Tags
+            register_rest_field('product', 'product_tag', array(
+                'get_callback' => function ($object) {
+                    $terms = get_the_terms($object['id'], 'product_tag');
+                    foreach ($terms as $term) {
+                        $product_tags[] = $term->term_id;
+                    }
+                    return $product_tags;
                 }
             ));
 
@@ -192,7 +235,7 @@ if (!class_exists('PXE_WC_Api_Rest')) :
 
             // Product Type
             register_rest_field('product', 'product_type', array(
-                'get_callback' => function($object) {
+                'get_callback' => function ($object) {
                     $product = wc_get_product($object['id']);
 
                     return $product->get_type();
@@ -204,9 +247,9 @@ if (!class_exists('PXE_WC_Api_Rest')) :
                 'get_callback' => function ($object) {
                     $product = wc_get_product($object['id']);
 
-                    if( $product->is_type( 'variable' )) {
+                    if ($product->is_type('variable')) {
                         $variations = $product->get_available_variations();
-                        return  wp_list_pluck( $variations, 'variation_id' );
+                        return  wp_list_pluck($variations, 'variation_id');
                     } else {
                         return [];
                     }
