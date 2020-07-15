@@ -190,6 +190,9 @@ if (!class_exists('PXE_WC_Api_Rest')) :
             register_rest_field('product', 'product_tag', array(
                 'get_callback' => function ($object) {
                     $terms = get_the_terms($object['id'], 'product_tag');
+
+                    if (!$terms) return array();
+                    
                     foreach ($terms as $term) {
                         $product_tags[] = $term->term_id;
                     }
