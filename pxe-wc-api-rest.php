@@ -43,7 +43,8 @@ if (!class_exists('PXE_WC_Api_Rest')) :
             add_action('rest_api_init', __CLASS__ . '::extend_product_endpoint');
             add_action('rest_api_init', __CLASS__ . '::create_order_endpoint');
             add_action('rest_api_init', __CLASS__ . '::get_product_variation_endpoint');
-            //add_filter('woocommerce_taxonomy_args_product_cat', __CLASS__ . '::extend_product_cat');
+            add_filter('woocommerce_taxonomy_args_product_cat', __CLASS__ . '::extend_product_term');
+            add_filter('woocommerce_taxonomy_args_product_tag', __CLASS__ . '::extend_product_term');
         }
 
         /**
@@ -258,19 +259,28 @@ if (!class_exists('PXE_WC_Api_Rest')) :
                     }
                 }
             ));
+
+            // Product Attributes
+            register_rest_field('product', 'attributes', array(
+                'get_callback' => function ($object) {
+                    $product = wc_get_product($object['id']);
+                    $product_attributes = $product->get_attributes();
+                    return $product_attributes;
+                }
+            ));
         }
 
         /**
-         * extend_product_cat
+         * extend_product_term
          *
          * @param  mixed $args
          * @return void
          */
-        /* public static function extend_product_cat($args)
+        public static function extend_product_term($args)
         {
             $args['show_in_rest'] = true;
             return $args;
-        } */
+        }
     }
 
     $PXE_WC_Api_Rest = new PXE_WC_Api_Rest;
