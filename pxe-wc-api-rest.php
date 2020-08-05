@@ -42,36 +42,69 @@ if (!class_exists('PXE_WC_Api_Rest')) :
             //add_action( 'woocommerce_rest_check_permissions', __CLASS__ . '::pxe_wc_rest_check_permissions' );    
             add_action('rest_api_init', __CLASS__ . '::extend_product_endpoint');
             add_action('rest_api_init', __CLASS__ . '::create_order_endpoint');
-            add_action('rest_api_init', __CLASS__ . '::get_product_variation_endpoint');
+            add_action('rest_api_init', __CLASS__ . '::get_single_variation_endpoint');
+            add_action('rest_api_init', __CLASS__ . '::get_product_variations_endpoint');
             add_filter('woocommerce_taxonomy_args_product_cat', __CLASS__ . '::extend_product_term');
             add_filter('woocommerce_taxonomy_args_product_tag', __CLASS__ . '::extend_product_term');
         }
 
         /**
-         * Register the route for get the product variation
+         * Register the route for get all the product variations
          *
          * @return void
          */
-        public static function get_product_variation_endpoint()
+        public static function get_product_variations_endpoint()
         {
             register_rest_route(
                 'wp/v2',
-                '/product/(?P<id>\d+)/variation/(?P<variation>\d+)',
+                '/product/(?P<id>\d+)/variations',
                 array(
                     'methods' => 'GET',
-                    'callback' => __CLASS__ . '::get_product_variation',
+                    'callback' => __CLASS__ . '::get_product_variations',
                 ),
                 true
             );
         }
 
         /**
-         * Return Product Variation via API
+         * Return all the Product Variations via API
          *
          * @param  mixed $request
          * @return WP_REST_Response|WP_Error Product Variation.
          */
-        public static function get_product_variation($request)
+        public static function get_product_variations($request) {
+            $product_id = $request['id'];
+            $product = wc_get_product($product_id);
+            $variations = $product->get_available_variations();
+
+            return $variations;
+        }
+
+        /**
+         * Register the route for get the product single variation
+         *
+         * @return void
+         */
+        public static function get_single_variation_endpoint()
+        {
+            register_rest_route(
+                'wp/v2',
+                '/product/(?P<id>\d+)/variation/(?P<variation>\d+)',
+                array(
+                    'methods' => 'GET',
+                    'callback' => __CLASS__ . '::get_single_variation',
+                ),
+                true
+            );
+        }
+
+        /**
+         * Return Product Single Variation via API
+         *
+         * @param  mixed $request
+         * @return WP_REST_Response|WP_Error Product Variation.
+         */
+        public static function get_single_variation($request)
         {
             $variation_id = $request['variation'];
 
