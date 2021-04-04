@@ -286,7 +286,8 @@ if (!class_exists('PXE_WC_Api_Rest')) :
 
                     if ($product->is_type('variable')) {
                         $variations = $product->get_available_variations();
-                        return  wp_list_pluck($variations, 'variation_id');
+                        //return  wp_list_pluck($variations, 'variation_id');
+                        return $variations;
                     } else {
                         return [];
                     }
